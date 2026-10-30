@@ -1,19 +1,1153 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#090d16"/>
-      <stop offset="50%" stop-color="#0f172a"/>
-      <stop offset="100%" stop-color="#1e1b4b"/>
-    </linearGradient>
-    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="50%" stop-color="#818cf8"/>
-      <stop offset="100%" stop-color="#c084fc"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="115" fill="url(#bgGrad)"/>
-  <circle cx="256" cy="256" r="190" fill="none" stroke="url(#waveGrad)" stroke-width="6" opacity="0.25"/>
-  <path d="M 76 256 Q 120 140, 166 256 T 256 256 T 346 256 T 436 256" fill="none" stroke="url(#waveGrad)" stroke-width="22" stroke-linecap="round"/>
-  <path d="M 96 296 Q 140 210, 186 296 T 276 296 T 366 296 T 416 296" fill="none" stroke="#38bdf8" stroke-width="12" stroke-linecap="round" opacity="0.6"/>
-  <text x="256" y="425" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="46" fill="#f8fafc" text-anchor="middle" letter-spacing="4">DUAL PAD</text>
-</svg>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#070910" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>DualPad Stage</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --bg: #070910;
+      --panel: #111624;
+      --panel-border: #1e273d;
+      --text: #f8fafc;
+      --muted: #8b9bb4;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.45);
+      --pad2: #a855f7;
+      --cutoff: #f59e0b;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100dvh;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 8px 10px 10px;
+      gap: 7px;
+    }
+
+    /* TOPO COMPACTO DE PALCO */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 6px 10px;
+      flex-shrink: 0;
+    }
+
+    .key-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0b0f1a;
+      border: 1px solid #26324d;
+      padding: 4px 12px;
+      border-radius: 10px;
+      min-width: 92px;
+    }
+
+    .key-badge .lbl {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .key-badge .val {
+      font-size: 22px;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-top {
+      background: #1a2236;
+      color: var(--text);
+      border: 1px solid #2b3856;
+      border-radius: 10px;
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .btn-top.active {
+      background: var(--red);
+      border-color: #f87171;
+      color: #fff;
+    }
+
+    .btn-top.lib-btn {
+      background: #1e293b;
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    /* CAMADAS DUAL PAD COMPACTAS */
+    .layers-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .layer-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 7px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .layer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .layer-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
+    }
+
+    .dot.p2 {
+      background: var(--pad2);
+      box-shadow: 0 0 8px var(--pad2);
+    }
+
+    .bank-pills {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+
+    .pill {
+      background: #0b0f1a;
+      border: 1px solid #222c42;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 6px 2px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pill.ready {
+      color: #cbd5e1;
+      border-color: #2e3d5c;
+    }
+
+    .pill.selected-p1 {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    .pill.selected-p2 {
+      background: rgba(168, 85, 247, 0.2);
+      border-color: var(--pad2);
+      color: #fff;
+    }
+
+    .vol-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      border-radius: 7px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .toggle-btn.on-p1 {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--green);
+      color: #34d399;
+    }
+
+    .toggle-btn.on-p2 {
+      background: rgba(168, 85, 247, 0.22);
+      border-color: var(--pad2);
+      color: #d8b4fe;
+    }
+
+    .vol-val {
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 34px;
+      text-align: right;
+      color: #cbd5e1;
+    }
+
+    /* SLIDERS GROSSOS PARA PALCO */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 10px;
+      background: #090d16;
+      border-radius: 99px;
+      border: 1px solid #222c42;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      cursor: pointer;
+    }
+
+    .slider-p2::-webkit-slider-thumb {
+      background: var(--pad2) !important;
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.6) !important;
+    }
+
+    .slider-cutoff::-webkit-slider-thumb {
+      background: var(--cutoff) !important;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7) !important;
+    }
+
+    /* BARRA DE CUTOFF DIRETA */
+    .cutoff-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 7px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .cutoff-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .cutoff-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--cutoff);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cutoff-presets {
+      display: flex;
+      gap: 4px;
+    }
+
+    .preset-btn {
+      background: #0b0f1a;
+      border: 1px solid #2b3856;
+      color: #cbd5e1;
+      border-radius: 7px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .preset-btn.active {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: var(--cutoff);
+      color: #fde68a;
+    }
+
+    /* TECLADO GIGANTE DE NOTAS (OCUPA O RESTO DA TELA) */
+    .notes-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    .notes-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 7px;
+      min-height: 0;
+    }
+
+    .note-btn {
+      background: linear-gradient(180deg, #161e31 0%, #0f1523 100%);
+      border: 1.5px solid #26334d;
+      border-radius: 14px;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.06s ease, border-color 0.15s ease;
+    }
+
+    .note-btn:active {
+      transform: scale(0.96);
+    }
+
+    .note-btn .n-main {
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .note-btn .n-sub {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .note-btn.active {
+      background: linear-gradient(180deg, #4f46e5 0%, #312e81 100%);
+      border-color: #818cf8;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .note-btn.active .n-sub {
+      color: #e0e7ff;
+    }
+
+    .stop-btn {
+      height: 44px;
+      flex-shrink: 0;
+      background: rgba(239, 68, 68, 0.16);
+      border: 1.5px solid var(--red);
+      color: #fca5a5;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .stop-btn:active {
+      background: var(--red);
+      color: #fff;
+    }
+
+    /* MODAIS (BIBLIOTECA E EQ) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 5, 10, 0.85);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 100;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #111726;
+      border: 1px solid #2b3856;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      max-height: 88dvh;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1f2a40;
+      padding-bottom: 10px;
+    }
+
+    .modal-head h3 {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .close-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .lib-item {
+      background: #0b0f1a;
+      border: 1px solid #222c42;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .lib-item.ready {
+      border-color: var(--green);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .lib-info h4 {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .lib-info p {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .dl-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .dl-btn.done {
+      background: var(--green);
+    }
+
+    .eq-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #0b0f1a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #1f2a40;
+    }
+
+    .eq-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- BARRA DO TOPO -->
+    <div class="topbar">
+      <div class="key-badge">
+        <div class="lbl">TOM<br>ATUAL</div>
+        <div class="val" id="currentKeyDisplay">--</div>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn-top lib-btn" id="btnOpenLib">📚 Pads</button>
+        <button class="btn-top" id="btnOpenEq">🎛️ EQ / Fade</button>
+        <button class="btn-top" id="btnLock">🔓 Trava</button>
+      </div>
+    </div>
+
+    <!-- CAMADAS DUAL PAD -->
+    <div class="layers-box">
+      <!-- PAD 1 -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <div class="layer-title">
+            <span class="dot"></span>
+            <span>PAD 1</span>
+            <span id="p1StatusText" style="font-size:10px; color:var(--muted); font-weight:600;">(Cloud)</span>
+          </div>
+          <div class="vol-row" style="width: 58%;">
+            <button class="toggle-btn on-p1" id="btnToggleP1">ON</button>
+            <input type="range" id="volP1" min="0" max="100" value="85" />
+            <span class="vol-val" id="volP1Val">85%</span>
+          </div>
+        </div>
+        <div class="bank-pills" id="pillsP1"></div>
+      </div>
+
+      <!-- PAD 2 -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <div class="layer-title">
+            <span class="dot p2"></span>
+            <span>PAD 2</span>
+            <span id="p2StatusText" style="font-size:10px; color:var(--muted); font-weight:600;">(Reverse)</span>
+          </div>
+          <div class="vol-row" style="width: 58%;">
+            <button class="toggle-btn on-p2" id="btnToggleP2">ON</button>
+            <input type="range" class="slider-p2" id="volP2" min="0" max="100" value="50" />
+            <span class="vol-val" id="volP2Val">50%</span>
+          </div>
+        </div>
+        <div class="bank-pills" id="pillsP2"></div>
+      </div>
+    </div>
+
+    <!-- CUTOFF -->
+    <div class="cutoff-card">
+      <div class="cutoff-top">
+        <div class="cutoff-title">
+          <span>🎚️ CUTOFF (BRILHO)</span>
+          <span id="cutoffVal" style="color:#fff;">4.5 kHz</span>
+        </div>
+        <div class="cutoff-presets">
+          <button class="preset-btn" data-freq="420">Oração</button>
+          <button class="preset-btn active" data-freq="4500">Médio</button>
+          <button class="preset-btn" data-freq="18000">Aberto</button>
+        </div>
+      </div>
+      <input type="range" class="slider-cutoff" id="cutoffSlider" min="200" max="18000" value="4500" />
+    </div>
+
+    <!-- TECLADO GIGANTE DE 12 NOTAS -->
+    <div class="notes-area">
+      <div class="notes-grid" id="notesGrid"></div>
+      <button class="stop-btn" id="btnStop">⏹️ PARAR PAD (FADE OUT SUAVE)</button>
+    </div>
+  </div>
+
+  <!-- MODAL: BIBLIOTECA DE PADS -->
+  <div class="modal-overlay" id="modalLib">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>📚 Biblioteca Offline de Pads</h3>
+        <button class="close-btn" id="btnCloseLib">Fechar</button>
+      </div>
+      <p style="font-size:12px; color:var(--muted);">
+        Toque em <b>Baixar</b> para salvar os timbres do seu GitHub na memória offline do celular:
+      </p>
+      <button class="dl-btn" id="btnDownloadAll" style="width:100%; padding:12px;">
+        ⬇️ Baixar Todos os 4 Pads Agora
+      </button>
+      <div id="libList" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: EQ & CROSSFADE -->
+  <div class="modal-overlay" id="modalEq">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>🎛️ Equalizador & Transição</h3>
+        <button class="close-btn" id="btnCloseEq">Fechar</button>
+      </div>
+
+      <div class="eq-row">
+        <div class="eq-label">
+          <span>⏱️ Tempo de Crossfade (Troca de Tom)</span>
+          <span id="xfadeVal">2.5 s</span>
+        </div>
+        <input type="range" id="xfadeSlider" min="0.5" max="6" step="0.5" value="2.5" />
+      </div>
+
+      <div class="eq-row">
+        <div class="eq-label">
+          <span>🔊 Grave (Corpo 120 Hz)</span>
+          <span id="bassVal">+2 dB</span>
+        </div>
+        <input type="range" id="bassSlider" min="-12" max="12" step="1" value="2" />
+      </div>
+
+      <div class="eq-row">
+        <div class="eq-label">
+          <span>✨ Agudo (Ar 3.2 kHz)</span>
+          <span id="trebleVal">0 dB</span>
+        </div>
+        <input type="range" id="trebleSlider" min="-12" max="12" step="1" value="0" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const NOTES = [
+      { id: 'C',  label: 'C',  sub: 'Dó',  file: 'C' },
+      { id: 'C#', label: 'C#', sub: 'Réb', file: 'Db' },
+      { id: 'D',  label: 'D',  sub: 'Ré',  file: 'D' },
+      { id: 'D#', label: 'D#', sub: 'Mib', file: 'Eb' },
+      { id: 'E',  label: 'E',  sub: 'Mi',  file: 'E' },
+      { id: 'F',  label: 'F',  sub: 'Fá',  file: 'F' },
+      { id: 'F#', label: 'F#', sub: 'Solb',file: 'Gb' },
+      { id: 'G',  label: 'G',  sub: 'Sol', file: 'G' },
+      { id: 'G#', label: 'G#', sub: 'Láb', file: 'Ab' },
+      { id: 'A',  label: 'A',  sub: 'Lá',  file: 'A' },
+      { id: 'A#', label: 'A#', sub: 'Sib', file: 'Bb' },
+      { id: 'B',  label: 'B',  sub: 'Si',  file: 'B' }
+    ];
+
+    const BANKS = [
+      { id: 'cloud',            name: 'Cloud',    fullName: 'Pad Cloud',            folders: ['pads/cloud'] },
+      { id: 'dark',             name: 'Dark',     fullName: 'Pad Dark',             folders: ['pads/dark'] },
+      { id: 'reverse',          name: 'Reverse',  fullName: 'Pad Reverse',          folders: ['pads/reverse'] },
+      { id: 'reverse-especial', name: 'Rev. Esp', fullName: 'Pad Reverse Especial', folders: ['pads/reverse-especial', 'pads/reverse%20especial'] },
+      { id: 'soft',             name: 'Soft',     fullName: 'Pad Soft (Synth)',     folders: [], synth: true }
+    ];
+
+    // Mapeamento dos nomes originais das pastas Muka caso não estejam renomeados
+    const ALT_FILENAMES = {
+      'C':  ['C.mp3', 'C(Am).mp3', 'c.mp3'],
+      'C#': ['Db.mp3', 'C%23.mp3', 'C%23(Db).mp3', 'c%23.mp3'],
+      'D':  ['D.mp3', 'D(Bm).mp3', 'd.mp3'],
+      'D#': ['Eb.mp3', 'D%23.mp3', 'D%23(Eb).mp3', 'D(Cm).mp3', 'd%23.mp3'],
+      'E':  ['E.mp3', 'E(Cm).mp3', 'E(Dbm).mp3', 'e.mp3'],
+      'F':  ['F.mp3', 'F(Dm).mp3', 'f.mp3'],
+      'F#': ['Gb.mp3', 'F%23.mp3', 'f%23.mp3', 'F%23(Gb).mp3'],
+      'G':  ['G.mp3', 'G(E).mp3', 'G(Em).mp3', 'g.mp3'],
+      'G#': ['Ab.mp3', 'G%23.mp3', 'G%23(Ab).mp3', 'g%23.mp3'],
+      'A':  ['A.mp3', 'A(F).mp3', 'A(Gbm).mp3', 'a.mp3'],
+      'A#': ['Bb.mp3', 'A%23.mp3', 'A%23(Bb).mp3', 'a%23.mp3'],
+      'B':  ['B.mp3', 'B(Gm).mp3', 'B(Abm).mp3', 'b.mp3']
+    };
+
+    const state = {
+      activeKey: null,
+      locked: false,
+      pad1Bank: 'cloud',
+      pad2Bank: 'reverse',
+      pad1On: true,
+      pad2On: true,
+      vol1: 0.85,
+      vol2: 0.50,
+      cutoff: 4500,
+      xfade: 2.5,
+      bass: 2,
+      treble: 0,
+      readyBanks: { 'soft': true }
+    };
+
+    // IndexedDB para salvar MP3 offline
+    let db;
+    function initDB() {
+      return new Promise((resolve) => {
+        const req = indexedDB.open('DualPadStageDB', 1);
+        req.onupgradeneeded = (e) => {
+          const d = e.target.result;
+          if (!d.objectStoreNames.contains('samples')) {
+            d.createObjectStore('samples');
+          }
+        };
+        req.onsuccess = (e) => {
+          db = e.target.result;
+          resolve();
+        };
+        req.onerror = () => resolve();
+      });
+    }
+
+    function saveSample(key, blob) {
+      return new Promise((resolve) => {
+        if (!db) return resolve();
+        const tx = db.transaction('samples', 'readwrite');
+        tx.objectStore('samples').put(blob, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      });
+    }
+
+    function getSample(key) {
+      return new Promise((resolve) => {
+        if (!db) return resolve(null);
+        const tx = db.transaction('samples', 'readonly');
+        const req = tx.objectStore('samples').get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    // Web Audio API
+    let ctx, filterNode, bassNode, trebleNode, gainP1, gainP2;
+    let currentVoices = [];
+    const decodedCache = {};
+
+    function ensureAudio() {
+      if (!ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        ctx = new AudioCtx();
+
+        bassNode = ctx.createBiquadFilter();
+        bassNode.type = 'lowshelf';
+        bassNode.frequency.value = 120;
+        bassNode.gain.value = state.bass;
+
+        trebleNode = ctx.createBiquadFilter();
+        trebleNode.type = 'highshelf';
+        trebleNode.frequency.value = 3200;
+        trebleNode.gain.value = state.treble;
+
+        filterNode = ctx.createBiquadFilter();
+        filterNode.type = 'lowpass';
+        filterNode.frequency.value = state.cutoff;
+        filterNode.Q.value = 0.7;
+
+        gainP1 = ctx.createGain();
+        gainP2 = ctx.createGain();
+        updateLayerGains();
+
+        gainP1.connect(bassNode);
+        gainP2.connect(bassNode);
+        bassNode.connect(trebleNode);
+        trebleNode.connect(filterNode);
+        filterNode.connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+    }
+
+    function updateLayerGains() {
+      if (!gainP1 || !gainP2) return;
+      const now = ctx.currentTime;
+      gainP1.gain.setTargetAtTime(state.pad1On ? state.vol1 : 0, now, 0.05);
+      gainP2.gain.setTargetAtTime(state.pad2On ? state.vol2 : 0, now, 0.05);
+    }
+
+    function noteFreq(noteId) {
+      const idx = NOTES.findIndex(n => n.id === noteId);
+      return 130.81 * Math.pow(2, idx / 12);
+    }
+
+    function createSynthVoice(noteId, destGain, fadeTime) {
+      const now = ctx.currentTime;
+      const vGain = ctx.createGain();
+      vGain.gain.setValueAtTime(0.0001, now);
+      vGain.gain.linearRampToValueAtTime(0.35, now + fadeTime);
+      vGain.connect(destGain);
+
+      const base = noteFreq(noteId);
+      const ratios = [1, 1.5, 2, 2.5];
+      const oscs = ratios.map((r, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = i % 2 === 0 ? 'sawtooth' : 'triangle';
+        osc.frequency.value = base * r;
+        osc.detune.value = (i - 1.5) * 6;
+        const g = ctx.createGain();
+        g.gain.value = 0.18 / (i + 1);
+        osc.connect(g);
+        g.connect(vGain);
+        osc.start(now);
+        return osc;
+      });
+
+      return {
+        stop: (release) => {
+          const t = ctx.currentTime;
+          vGain.gain.cancelScheduledValues(t);
+          vGain.gain.setValueAtTime(Math.max(vGain.gain.value, 0.0001), t);
+          vGain.gain.linearRampToValueAtTime(0.0001, t + release);
+          setTimeout(() => oscs.forEach(o => { try { o.stop(); } catch(e){} }), release * 1000 + 100);
+        }
+      };
+    }
+
+    async function createSampleVoice(bankId, noteId, destGain, fadeTime) {
+      const cacheKey = `${bankId}_${noteId}`;
+      let audioBuffer = decodedCache[cacheKey];
+
+      if (!audioBuffer) {
+        const blob = await getSample(cacheKey);
+        if (blob) {
+          const arr = await blob.arrayBuffer();
+          audioBuffer = await ctx.decodeAudioData(arr);
+          decodedCache[cacheKey] = audioBuffer;
+        }
+      }
+
+      if (!audioBuffer) {
+        return createSynthVoice(noteId, destGain, fadeTime);
+      }
+
+      const now = ctx.currentTime;
+      const vGain = ctx.createGain();
+      vGain.gain.setValueAtTime(0.0001, now);
+      vGain.gain.linearRampToValueAtTime(1.0, now + fadeTime);
+      vGain.connect(destGain);
+
+      const src = ctx.createBufferSource();
+      src.buffer = audioBuffer;
+      src.loop = true;
+      if (audioBuffer.duration > 6) {
+        src.loopStart = 1.5;
+        src.loopEnd = audioBuffer.duration - 1.5;
+      }
+      src.connect(vGain);
+      src.start(now);
+
+      return {
+        stop: (release) => {
+          const t = ctx.currentTime;
+          vGain.gain.cancelScheduledValues(t);
+          vGain.gain.setValueAtTime(Math.max(vGain.gain.value, 0.0001), t);
+          vGain.gain.linearRampToValueAtTime(0.0001, t + release);
+          setTimeout(() => { try { src.stop(); } catch(e){} }, release * 1000 + 100);
+        }
+      };
+    }
+
+    async function triggerNote(noteId) {
+      if (state.locked) return;
+      ensureAudio();
+
+      if (state.activeKey === noteId) return;
+      state.activeKey = noteId;
+      updateUI();
+
+      const oldVoices = [...currentVoices];
+      currentVoices = [];
+      oldVoices.forEach(v => v.stop(state.xfade));
+
+      const v1 = await createSampleVoice(state.pad1Bank, noteId, gainP1, state.xfade);
+      const v2 = await createSampleVoice(state.pad2Bank, noteId, gainP2, state.xfade);
+      currentVoices.push(v1, v2);
+    }
+
+    function stopAllPads() {
+      if (state.locked) return;
+      state.activeKey = null;
+      updateUI();
+      const oldVoices = [...currentVoices];
+      currentVoices = [];
+      oldVoices.forEach(v => v.stop(state.xfade));
+    }
+
+    // Busca inteligente nas pastas do GitHub
+    async function fetchNoteBlob(bank, noteObj) {
+      const candidates = ALT_FILENAMES[noteObj.id] || [`${noteObj.file}.mp3`];
+      for (const folder of bank.folders) {
+        for (const fileName of candidates) {
+          try {
+            const res = await fetch(`${folder}/${fileName}`);
+            if (res.ok) {
+              return await res.blob();
+            }
+          } catch (e) {}
+        }
+      }
+      return null;
+    }
+
+    async function downloadBank(bankId, btnEl) {
+      const bank = BANKS.find(b => b.id === bankId);
+      if (!bank || bank.synth) return;
+
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = 'Baixando 0/12...';
+      }
+
+      let successCount = 0;
+      for (let i = 0; i < NOTES.length; i++) {
+        const n = NOTES[i];
+        if (btnEl) btnEl.textContent = `Baixando ${i + 1}/12...`;
+        const blob = await fetchNoteBlob(bank, n);
+        if (blob) {
+          await saveSample(`${bank.id}_${n.id}`, blob);
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        state.readyBanks[bank.id] = true;
+      } else {
+        alert(`Não foi possível encontrar os MP3s de ${bank.fullName} na pasta do GitHub.`);
+      }
+      renderLibrary();
+      renderPills();
+    }
+
+    async function checkSavedBanks() {
+      for (const b of BANKS) {
+        if (b.synth) continue;
+        const sample = await getSample(`${b.id}_C`);
+        if (sample) state.readyBanks[b.id] = true;
+      }
+    }
+
+    // RENDERIZAÇÃO DE INTERFACE
+    function renderNotes() {
+      const grid = document.getElementById('notesGrid');
+      grid.innerHTML = '';
+      NOTES.forEach(n => {
+        const btn = document.createElement('button');
+        btn.className = 'note-btn' + (state.activeKey === n.id ? ' active' : '');
+        btn.innerHTML = `<span class="n-main">${n.label}</span><span class="n-sub">${n.sub}</span>`;
+        btn.onclick = () => triggerNote(n.id);
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderPills() {
+      const p1Container = document.getElementById('pillsP1');
+      const p2Container = document.getElementById('pillsP2');
+      p1Container.innerHTML = '';
+      p2Container.innerHTML = '';
+
+      BANKS.forEach(b => {
+        const isReady = !!state.readyBanks[b.id];
+
+        const btn1 = document.createElement('button');
+        btn1.className = `pill ${isReady ? 'ready' : ''} ${state.pad1Bank === b.id ? 'selected-p1' : ''}`;
+        btn1.textContent = (isReady ? '' : '☁️ ') + b.name;
+        btn1.onclick = async () => {
+          if (state.locked) return;
+          if (!isReady) {
+            document.getElementById('modalLib').classList.add('open');
+            return;
+          }
+          state.pad1Bank = b.id;
+          document.getElementById('p1StatusText').textContent = `(${b.name})`;
+          renderPills();
+          if (state.activeKey) {
+            const k = state.activeKey;
+            state.activeKey = null;
+            triggerNote(k);
+          }
+        };
+        p1Container.appendChild(btn1);
+
+        const btn2 = document.createElement('button');
+        btn2.className = `pill ${isReady ? 'ready' : ''} ${state.pad2Bank === b.id ? 'selected-p2' : ''}`;
+        btn2.textContent = (isReady ? '' : '☁️ ') + b.name;
+        btn2.onclick = async () => {
+          if (state.locked) return;
+          if (!isReady) {
+            document.getElementById('modalLib').classList.add('open');
+            return;
+          }
+          state.pad2Bank = b.id;
+          document.getElementById('p2StatusText').textContent = `(${b.name})`;
+          renderPills();
+          if (state.activeKey) {
+            const k = state.activeKey;
+            state.activeKey = null;
+            triggerNote(k);
+          }
+        };
+        p2Container.appendChild(btn2);
+      });
+    }
+
+    function renderLibrary() {
+      const list = document.getElementById('libList');
+      list.innerHTML = '';
+      BANKS.filter(b => !b.synth).forEach(b => {
+        const isReady = !!state.readyBanks[b.id];
+        const div = document.createElement('div');
+        div.className = `lib-item ${isReady ? 'ready' : ''}`;
+        div.innerHTML = `
+          <div class="lib-info">
+            <h4>${b.fullName}</h4>
+            <p>${isReady ? '✅ Salvo na memória offline' : '☁️ Toque para baixar do GitHub'}</p>
+          </div>
+        `;
+        const btn = document.createElement('button');
+        btn.className = `dl-btn ${isReady ? 'done' : ''}`;
+        btn.textContent = isReady ? '✅ Pronto' : '⬇️ Baixar';
+        btn.onclick = () => downloadBank(b.id, btn);
+        div.appendChild(btn);
+        list.appendChild(div);
+      });
+    }
+
+    function updateUI() {
+      document.getElementById('currentKeyDisplay').textContent = state.activeKey || '--';
+      renderNotes();
+    }
+
+    // EVENTOS
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initDB();
+      await checkSavedBanks();
+      renderNotes();
+      renderPills();
+      renderLibrary();
+
+      document.getElementById('btnStop').onclick = stopAllPads;
+
+      document.getElementById('btnLock').onclick = (e) => {
+        state.locked = !state.locked;
+        const btn = e.currentTarget;
+        btn.classList.toggle('active', state.locked);
+        btn.textContent = state.locked ? '🔒 Travado' : '🔓 Trava';
+      };
+
+      document.getElementById('btnToggleP1').onclick = (e) => {
+        if (state.locked) return;
+        state.pad1On = !state.pad1On;
+        e.currentTarget.classList.toggle('on-p1', state.pad1On);
+        e.currentTarget.textContent = state.pad1On ? 'ON' : 'MUTE';
+        updateLayerGains();
+      };
+
+      document.getElementById('btnToggleP2').onclick = (e) => {
+        if (state.locked) return;
+        state.pad2On = !state.pad2On;
+        e.currentTarget.classList.toggle('on-p2', state.pad2On);
+        e.currentTarget.textContent = state.pad2On ? 'ON' : 'MUTE';
+        updateLayerGains();
+      };
+
+      document.getElementById('volP1').oninput = (e) => {
+        state.vol1 = Number(e.target.value) / 100;
+        document.getElementById('volP1Val').textContent = `${e.target.value}%`;
+        updateLayerGains();
+      };
+
+      document.getElementById('volP2').oninput = (e) => {
+        state.vol2 = Number(e.target.value) / 100;
+        document.getElementById('volP2Val').textContent = `${e.target.value}%`;
+        updateLayerGains();
+      };
+
+      const cutoffSlider = document.getElementById('cutoffSlider');
+      const updateCutoff = (val) => {
+        state.cutoff = Number(val);
+        cutoffSlider.value = state.cutoff;
+        document.getElementById('cutoffVal').textContent =
+          state.cutoff >= 1000 ? `${(state.cutoff / 1000).toFixed(1)} kHz` : `${state.cutoff} Hz`;
+        if (filterNode && ctx) {
+          filterNode.frequency.setTargetAtTime(state.cutoff, ctx.currentTime, 0.04);
+        }
+      };
+
+      cutoffSlider.oninput = (e) => {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        updateCutoff(e.target.value);
+      };
+
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          updateCutoff(btn.dataset.freq);
+        };
+      });
+
+      // Modais
+      document.getElementById('btnOpenLib').onclick = () => document.getElementById('modalLib').classList.add('open');
+      document.getElementById('btnCloseLib').onclick = () => document.getElementById('modalLib').classList.remove('open');
+      document.getElementById('btnOpenEq').onclick = () => document.getElementById('modalEq').classList.add('open');
+      document.getElementById('btnCloseEq').onclick = () => document.getElementById('modalEq').classList.remove('open');
+
+      document.getElementById('btnDownloadAll').onclick = async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        for (const b of BANKS) {
+          if (!b.synth && !state.readyBanks[b.id]) {
+            btn.textContent = `Baixando ${b.fullName}...`;
+            await downloadBank(b.id, null);
+          }
+        }
+        btn.textContent = '✅ Todos os Pads Baixados!';
+      };
+
+      // EQ e Crossfade
+      document.getElementById('xfadeSlider').oninput = (e) => {
+        state.xfade = Number(e.target.value);
+        document.getElementById('xfadeVal').textContent = `${state.xfade.toFixed(1)} s`;
+      };
+
+      document.getElementById('bassSlider').oninput = (e) => {
+        state.bass = Number(e.target.value);
+        document.getElementById('bassVal').textContent = `${state.bass > 0 ? '+' : ''}${state.bass} dB`;
+        if (bassNode && ctx) bassNode.gain.setTargetAtTime(state.bass, ctx.currentTime, 0.05);
+      };
+
+      document.getElementById('trebleSlider').oninput = (e) => {
+        state.treble = Number(e.target.value);
+        document.getElementById('trebleVal').textContent = `${state.treble > 0 ? '+' : ''}${state.treble} dB`;
+        if (trebleNode && ctx) trebleNode.gain.setTargetAtTime(state.treble, ctx.currentTime, 0.05);
+      };
+    });
+  </script>
+</body>
+</html>
